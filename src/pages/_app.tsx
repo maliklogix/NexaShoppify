@@ -4,8 +4,6 @@ import { Toaster } from 'react-hot-toast'
 import { useAppStore } from '@/store/appStore'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import DashboardLayout from '@/components/layout/DashboardLayout'
-
 export default function App({ Component, pageProps }: AppProps) {
   const { isAuthenticated } = useAppStore();
   const router = useRouter();
@@ -28,13 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <>
-      {isLoginPage ? (
-        <Component {...pageProps} />
-      ) : (
-        <DashboardLayout>
-           <Component {...pageProps} />
-        </DashboardLayout>
-      )}
+      <Component {...pageProps} />
       
       <Toaster
         position="bottom-right"
