@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
       <Sidebar />
       <div 
         className={`transition-all duration-300 ${
-          isSidebarOpen ? "ml-64" : "ml-20"
+          isSidebarOpen ? "ml-[260px]" : "ml-16"
         }`}
       >
         <Header />
