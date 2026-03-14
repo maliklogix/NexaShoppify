@@ -27,7 +27,7 @@ const NAV = [
 
 export default function Sidebar() {
   const { sidebarOpen, activePage, setActivePage, setSidebarOpen, notifications } = useAppStore()
-  const unread = notifications.filter(n => !n.read).length
+  const unread = (notifications || []).filter(n => !n.read).length
 
   if (!sidebarOpen) return (
     <div className="fixed left-0 top-0 h-full w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-1 z-30">
