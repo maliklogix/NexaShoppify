@@ -4,6 +4,16 @@ import { Bot, Send, Sparkles, BarChart3, ShoppingBag, Users, TrendingUp, Refresh
 import { useAppStore } from '@/store/appStore'
 import { generateAISummary } from '@/lib/shopify'
 
+function logChatToBackend(userId: string, role: 'user' | 'assistant', content: string) {
+  if (userId && userId !== 'fallback-admin-id') {
+    fetch('/api/logs/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, role, content }),
+    }).catch(() => {})
+  }
+}
+
 const QUICK_PROMPTS = [
   { icon: BarChart3, label: 'Summarize today\'s store performance', color: 'bg-shopify-50 text-shopify-600' },
   { icon: ShoppingBag, label: 'List top 5 products this week', color: 'bg-blue-50 text-blue-600' },
@@ -14,7 +24,7 @@ const QUICK_PROMPTS = [
 interface Message { role: 'user' | 'assistant'; content: string; time: string }
 
 export default function AIPage() {
-  const { apiSettings } = useAppStore()
+  const { user, apiSettings } = useAppStore()
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -35,6 +45,7 @@ export default function AIPage() {
     setInput('')
     const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     setMessages(m => [...m, { role: 'user', content: msg, time }])
+    logChatToBackend(user?.id ?? '', 'user', msg)
     setLoading(true)
 
     let reply = ''
@@ -58,7 +69,9 @@ export default function AIPage() {
       reply = key ? demos[key] : `I'm ready to help! To enable live AI responses, please add your ${provider === 'openai' ? 'OpenAI' : 'Mistral'} API key in **Settings → AI Settings**.\n\nFor now, I can provide demo responses. Try asking about:\n• Store performance summary\n• Customer analysis\n• Revenue forecast`
     }
 
-    setMessages(m => [...m, { role: 'assistant', content: reply, time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) }])
+    const assistantTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    setMessages(m => [...m, { role: 'assistant', content: reply, time: assistantTime }])
+    logChatToBackend(user?.id ?? '', 'assistant', reply)
     setLoading(false)
   }
 

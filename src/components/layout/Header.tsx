@@ -1,20 +1,41 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { useAppStore } from '@/store/appStore'
-import { Menu, Bell, Search, RefreshCw, Sun, ChevronDown } from 'lucide-react'
+import { Menu, Bell, Search, RefreshCw, ChevronDown, LogOut } from 'lucide-react'
 
 const PAGE_TITLES: Record<string, string> = {
   dashboard: 'Dashboard', analytics: 'Analytics', orders: 'Orders',
   products: 'Products', customers: 'Customers', discounts: 'Discounts',
   automations: 'Automations', webhooks: 'Webhooks', ai: 'AI Assistant',
-  csr: 'CSR Support Center', notifications: 'Notifications', settings: 'Settings & API Keys',
+  csr: 'CSR Support Center', users: 'User Management', notifications: 'Notifications', settings: 'Settings & API Keys',
 }
 
 export default function Header() {
-  const { sidebarOpen, setSidebarOpen, activePage, notifications, markAllRead } = useAppStore()
+  const router = useRouter()
+  const { user, sidebarOpen, setSidebarOpen, activePage, notifications, markAllRead, logout } = useAppStore()
   const [showNotifs, setShowNotifs] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const unread = notifications.filter(n => !n.read).length
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setShowUserMenu(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = async () => {
+    if (user?.id && user.id !== 'fallback-admin-id') {
+      try { await fetch('/api/auth/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.id }) }) } catch (_) {}
+    }
+    logout()
+    setShowUserMenu(false)
+    router.push('/login')
+  }
 
   const handleSync = () => {
     setSyncing(true)
@@ -84,10 +105,26 @@ export default function Header() {
       </div>
 
       {/* User */}
-      <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1.5 transition-colors">
-        <div className="w-7 h-7 rounded-full bg-shopify-400 flex items-center justify-center text-white text-xs font-bold">M</div>
-        <span className="text-sm font-medium text-gray-700 hidden md:block">Admin</span>
-        <ChevronDown size={12} className="text-gray-400" />
+      <div className="relative" ref={userMenuRef}>
+        <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-2 hover:bg-gray-50 rounded-lg px-2 py-1.5 transition-colors">
+          <div className="w-7 h-7 rounded-full bg-shopify-400 flex items-center justify-center text-white text-xs font-bold">
+            {(user?.username || 'U').charAt(0).toUpperCase()}
+          </div>
+          <span className="text-sm font-medium text-gray-700 hidden md:block">{user?.username ?? 'User'}</span>
+          <ChevronDown size={12} className="text-gray-400" />
+        </button>
+        {showUserMenu && (
+          <div className="absolute right-0 top-10 w-48 bg-white border border-gray-200 rounded-xl shadow-modal z-50 py-1">
+            <div className="px-3 py-2 border-b border-gray-100">
+              <p className="text-xs font-medium text-gray-800 truncate">{user?.username}</p>
+              <p className="text-[10px] text-gray-500">{user?.role}</p>
+            </div>
+            <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-red-50 hover:text-red-600">
+              <LogOut size={14} />
+              Log out
+            </button>
+          </div>
+        )}
       </div>
     </header>
   )

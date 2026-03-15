@@ -10,11 +10,65 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  USER
+}
+
 model User {
   id        String   @id @default(uuid())
   username  String   @unique
-  password  String
-  role      String   @default("ADMIN")
+  email     String?
+  password  String?
+  role      UserRole @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  activityLogs       ActivityLog[]
+  chatLogs            ChatLog[]
+  dashboardEvents     DashboardEvent[]
+  shopifyConnections  ShopifyConnection[]
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // LOGIN, LOGOUT, USER_CREATE, USER_UPDATE, USER_DELETE, etc.
+  resource  String?  // users, settings, etc.
+  details   String?  @db.Text
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model ChatLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   // user | assistant
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model DashboardEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page      String
+  action    String?  // view, click, etc.
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model ShopifyConnection {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopDomain   String
+  accessToken  String   @db.Text
+  scope        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, shopDomain])
 }

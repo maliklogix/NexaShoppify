@@ -1,4 +1,5 @@
 'use client'
+import { useEffect } from 'react'
 import { useAppStore } from '@/store/appStore'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
@@ -13,6 +14,7 @@ import CSRPage from '@/components/csr/CSRPage'
 import SettingsPage from '@/components/settings/SettingsPage'
 import AnalyticsPage from '@/components/analytics/AnalyticsPage'
 import DiscountsPage from '@/components/dashboard/DiscountsPage'
+import UsersPage from '@/components/users/UsersPage'
 import Head from 'next/head'
 
 const PAGE_MAP: Record<string, React.ComponentType> = {
@@ -26,13 +28,24 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   webhooks: WebhooksPage,
   ai: AIPage,
   csr: CSRPage,
+  users: UsersPage,
   settings: SettingsPage,
   notifications: DashboardPage,
 }
 
 export default function Home() {
-  const { sidebarOpen, activePage } = useAppStore()
+  const { user, sidebarOpen, activePage } = useAppStore()
   const PageComponent = PAGE_MAP[activePage] || DashboardPage
+
+  useEffect(() => {
+    if (user?.id && user.id !== 'fallback-admin-id' && activePage) {
+      fetch('/api/logs/dashboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, page: activePage, action: 'view' }),
+      }).catch(() => {})
+    }
+  }, [user?.id, activePage])
 
   return (
     <>

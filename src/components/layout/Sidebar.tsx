@@ -2,7 +2,7 @@
 import { useAppStore } from '@/store/appStore'
 import {
   LayoutDashboard, ShoppingBag, Users, Package, Zap, MessageSquare,
-  Settings, BarChart3, Bell, Tag, Webhook, Bot, ChevronLeft, Store, Shield
+  Settings, BarChart3, Bell, Tag, Webhook, Bot, ChevronLeft, Store, Shield, UserCog
 } from 'lucide-react'
 
 const NAV = [
@@ -21,6 +21,7 @@ const NAV = [
   { id: 'ai', label: 'AI Assistant', icon: Bot },
   { id: 'csr', label: 'CSR Support', icon: MessageSquare, badge: '3' },
   { section: 'System' },
+  { id: 'users', label: 'User Management', icon: UserCog },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'settings', label: 'Settings & API', icon: Settings },
 ]

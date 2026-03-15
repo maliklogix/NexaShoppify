@@ -3,6 +3,7 @@
 node_modules/
 .DS_Store
 *.log
+logs/
 .next/
 
 /src/generated/prisma
