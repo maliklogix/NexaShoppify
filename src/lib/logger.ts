@@ -3,6 +3,7 @@
  * All timestamps are in UTC.
  */
 
+import { Prisma } from '@prisma/client'
 import { prisma } from './prisma'
 import fs from 'fs'
 import path from 'path'
@@ -100,7 +101,7 @@ export async function logDashboard(payload: DashboardLogPayload): Promise<void> 
         userId: payload.userId,
         page: payload.page,
         action: payload.action ?? 'view',
-        metadata: payload.metadata ?? undefined,
+        metadata: payload.metadata == null ? undefined : (payload.metadata as Prisma.InputJsonValue),
       },
     })
   } catch (e) {
